@@ -47,12 +47,12 @@
 
       this.args = typeof args !== 'undefined' ? args : {};
       this.node = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelectorAll('.' + REF.clss);
-      this.Init();
+      this.Parade();
     }
 
     _createClass(Parade, [{
-      key: 'Init',
-      value: function Init() {}
+      key: 'Parade',
+      value: function Parade() {}
     }]);
 
     return Parade;

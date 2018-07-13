@@ -12,10 +12,10 @@ class Parade {
   constructor (args) {
     this.args = (typeof args !== 'undefined') ? args : {}
     this.node = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelectorAll('.' + REF.clss)
-    this.Init()
+    this.Parade()
   }
 
-  Init () {
+  Parade () {
   }
 };
 
