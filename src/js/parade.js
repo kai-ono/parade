@@ -23,6 +23,12 @@ class Parade {
       this.itemsData.push(this.SetData(this.items[index]))
     }
     this.SetToMatrix(this.itemsData)
+    window.addEventListener('resize', () => {
+      this.matrix = []
+      this.matrix = this.GenerateMatrix()
+      this.SetToMatrix(this.itemsData)
+console.log(this.matrix)
+    })
 console.log(this.matrix)
   }
 
@@ -48,7 +54,7 @@ console.log(this.matrix)
       j = 0
       tmpMatrix[i] = []
       while (j < this.cols) {
-        tmpMatrix[i][j] = 0
+        tmpMatrix[i][j] = 0 // (i === 0 && j === 3) ? 1 : 0
         j++
       }
       i++
@@ -64,12 +70,16 @@ console.log(this.matrix)
     while (i < this.rows) {
       j = 0
       while (j < this.cols) {
-        imgH = items[cnt].obj.children[0].getBoundingClientRect().height
-        items[cnt].obj.style.position = 'absolute'
-        items[cnt].obj.style.top = i * imgH + 'px'
-        items[cnt].obj.style.left = j * 25 + '%'
+        if (typeof items[cnt] === 'undefined') return
+        if (this.matrix[i][j] === 0) {
+          imgH = items[cnt].obj.children[0].getBoundingClientRect().height
+          items[cnt].obj.style.position = 'absolute'
+          items[cnt].obj.style.top = Math.round(i * imgH) + 'px'
+          items[cnt].obj.style.left = j * 25 + '%'
+          this.matrix[i][j] = 1
+          cnt++
+        }
         j++
-        cnt++
       }
       i++
     }

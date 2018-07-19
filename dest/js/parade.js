@@ -53,6 +53,8 @@
     _createClass(Parade, [{
       key: 'Parade',
       value: function Parade() {
+        var _this = this;
+
         if (this.items === '') return;
 
         this.matrix = this.GenerateMatrix();
@@ -60,6 +62,12 @@
           this.itemsData.push(this.SetData(this.items[index]));
         }
         this.SetToMatrix(this.itemsData);
+        window.addEventListener('resize', function () {
+          _this.matrix = [];
+          _this.matrix = _this.GenerateMatrix();
+          _this.SetToMatrix(_this.itemsData);
+          console.log(_this.matrix);
+        });
         console.log(this.matrix);
       }
     }, {
@@ -104,12 +112,16 @@
         while (i < this.rows) {
           j = 0;
           while (j < this.cols) {
-            imgH = items[cnt].obj.children[0].getBoundingClientRect().height;
-            items[cnt].obj.style.position = 'absolute';
-            items[cnt].obj.style.top = i * imgH + 'px';
-            items[cnt].obj.style.left = j * 25 + '%';
+            if (typeof items[cnt] === 'undefined') return;
+            if (this.matrix[i][j] === 0) {
+              imgH = items[cnt].obj.children[0].getBoundingClientRect().height;
+              items[cnt].obj.style.position = 'absolute';
+              items[cnt].obj.style.top = Math.round(i * imgH) + 'px';
+              items[cnt].obj.style.left = j * 25 + '%';
+              this.matrix[i][j] = 1;
+              cnt++;
+            }
             j++;
-            cnt++;
           }
           i++;
         }

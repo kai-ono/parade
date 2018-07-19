@@ -8,3 +8,25 @@
 img {
   vertical-align: top;
 }
+.items {
+  position: relative;
+  width: 80vw;
+  margin: 0 auto;
+  margin-bottom:50px;
+  background-color: blue;
+}
+.items > * {
+  width: 25%;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out 0s;
+}
+.items img {
+  width: 100%;
+  height: auto;
+}
+.parade {
+  height: 800px;
+}
+.cram > * {
+  position: absolute;
+}
