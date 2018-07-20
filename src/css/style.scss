@@ -15,11 +15,17 @@ img {
   margin-bottom:50px;
   background-color: blue;
   & > * {
-    width: 25%;
+    width: calc(100 / 4 * 1%);
     overflow: hidden;
     transition: all 0.3s ease-in-out 0s;
-    @media (max-width: 1440px) {
+    @media (max-width: 700px) {
       width: calc(100 / 3 * 1%);
+    }
+    &.sizeL {
+      width: calc(100 / 4 * 2%);
+      @media (max-width: 700px) {
+        width: calc(100 / 3 * 2%);
+      }
     }
   }
   img {

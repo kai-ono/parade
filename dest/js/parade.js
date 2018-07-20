@@ -44,8 +44,11 @@
       this.args = typeof args !== 'undefined' ? args : {};
       this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.parade');
       this.items = this.elm !== null ? [].slice.call(this.elm.children) : '';
-      this.rows = 4;
+
       this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width);
+      this.rows = this.items.length / this.cols;
+      this.gridW = Math.floor(this.elm.getBoundingClientRect().width * (100 / this.cols / 100));
+
       this.itemsData = [];
       this.Parade();
     }
@@ -57,10 +60,10 @@
 
         if (this.items === '') return;
 
-        this.matrix = this.GenerateMatrix();
         for (var index in this.items) {
           this.itemsData.push(this.SetData(this.items[index]));
         }
+        this.matrix = this.GenerateMatrix();
         this.SetToMatrix(this.itemsData);
         this.itemsData[0].obj.addEventListener('transitionend', function () {
           _this.InitPos();
@@ -68,6 +71,7 @@
         window.addEventListener('resize', function () {
           _this.InitPos();
         });
+        console.log(this.matrix);
       }
     }, {
       key: 'InitPos',
@@ -86,24 +90,25 @@
       key: 'SetData',
       value: function SetData(item) {
         var itemBCR = item.getBoundingClientRect();
+
+
+        var grid = item.dataset.grid.split(',');
         return {
           obj: item,
           width: 100 / this.cols,
           height: itemBCR.height,
-          row: 0,
-          col: 0
+          row: Number(grid[0]),
+          col: Number(grid[1])
         };
       }
-    }, {
-      key: 'SetPos',
-      value: function SetPos(item) {}
     }, {
       key: 'GenerateMatrix',
       value: function GenerateMatrix() {
         var tmpMatrix = [];
         var i = 0;
         var j = void 0;
-        while (i < this.rows) {
+
+        while (i < this.rows + 2) {
           j = 0;
           tmpMatrix[i] = [];
           while (j < this.cols) {
@@ -120,17 +125,43 @@
         var cnt = 0;
         var i = 0;
         var j = void 0;
+        var k = void 0;
+        var l = void 0;
         var imgH = void 0;
-        while (i < this.rows) {
+
+        while (i < this.rows + 2) {
           j = 0;
           while (j < this.cols) {
             if (typeof items[cnt] === 'undefined') return;
             if (this.matrix[i][j] === 0) {
-              imgH = items[cnt].obj.children[0].getBoundingClientRect().height;
+              console.log({
+                cnt: cnt,
+                j: j,
+                col: items[cnt].col,
+                next: this.matrix[i][j + items[cnt].col - 1],
+                top: Math.round(i * imgH),
+                left: j * items[cnt].width
+              });
+              if (typeof this.matrix[i][j + items[cnt].col - 1] === 'undefined') break;
+
+              imgH = items[0].obj.children[0].getBoundingClientRect().height;
               items[cnt].obj.style.position = 'absolute';
+              if (cnt === 2) {
+                console.log(Math.round(imgH));
+              }
               items[cnt].obj.style.top = Math.round(i * imgH) + 'px';
               items[cnt].obj.style.left = j * items[cnt].width + '%';
-              this.matrix[i][j] = 1;
+              items[cnt].obj.classList.add(cnt);
+
+              k = 0;
+              while (k < items[cnt].row) {
+                l = 0;
+                while (l < items[cnt].col) {
+                  this.matrix[i + k][j + l] = 1;
+                  l++;
+                }
+                k++;
+              }
               cnt++;
             }
             j++;

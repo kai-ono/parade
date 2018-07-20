@@ -9,8 +9,11 @@ class Parade {
     this.args = (typeof args !== 'undefined') ? args : {}
     this.elm = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelector('.parade')
     this.items = (this.elm !== null) ? [].slice.call(this.elm.children) : ''
-    this.rows = 4
+    // this.items[0]は不確定要素なので何とかしたい
     this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width)
+    this.rows = this.items.length / this.cols
+    this.gridW = Math.floor(this.elm.getBoundingClientRect().width * (100 / this.cols / 100))
+    // this.gridH = Math.floor(this.elm.getBoundingClientRect().height * (100 / this.rows / 100))
     this.itemsData = []
     this.Parade()
   }
@@ -18,10 +21,10 @@ class Parade {
   Parade () {
     if (this.items === '') return
 
-    this.matrix = this.GenerateMatrix()
     for (let index in this.items) {
       this.itemsData.push(this.SetData(this.items[index]))
     }
+    this.matrix = this.GenerateMatrix()
     this.SetToMatrix(this.itemsData)
     this.itemsData[0].obj.addEventListener('transitionend', () => {
       this.InitPos()
@@ -29,6 +32,7 @@ class Parade {
     window.addEventListener('resize', () => {
       this.InitPos()
     })
+console.log(this.matrix)
   }
 
   InitPos () {
@@ -45,23 +49,28 @@ console.log(this.matrix)
 
   SetData (item) {
     const itemBCR = item.getBoundingClientRect()
+// console.log({
+//   grid: this.gridW,
+//   b: Math.floor(item.getBoundingClientRect().width),
+//   c: Math.floor(item.getBoundingClientRect().width / this.gridW)
+// })
+
+    const grid = item.dataset.grid.split(',')
     return {
       obj: item,
       width: 100 / this.cols,
       height: itemBCR.height,
-      row: 0,
-      col: 0
+      row: Number(grid[0]),
+      col: Number(grid[1])
     }
-  }
-
-  SetPos (item) {
   }
 
   GenerateMatrix () {
     let tmpMatrix = []
     let i = 0
     let j
-    while (i < this.rows) {
+    // プラス2はデバッグ用
+    while (i < this.rows + 2) {
       j = 0
       tmpMatrix[i] = []
       while (j < this.cols) {
@@ -77,17 +86,53 @@ console.log(this.matrix)
     let cnt = 0
     let i = 0
     let j
+    let k
+    let l
     let imgH
-    while (i < this.rows) {
+    // プラス2はデバッグ用
+    while (i < this.rows + 2) {
       j = 0
       while (j < this.cols) {
         if (typeof items[cnt] === 'undefined') return
         if (this.matrix[i][j] === 0) {
-          imgH = items[cnt].obj.children[0].getBoundingClientRect().height
+          console.log({
+            cnt: cnt,
+            j: j,
+            col: items[cnt].col,
+            next: this.matrix[i][j + items[cnt].col - 1],
+            top: Math.round(i * imgH),
+            left: j * items[cnt].width
+          })
+          if (typeof this.matrix[i][j + items[cnt].col - 1] === 'undefined') break
+          // items[0]が不確定要素。参照する要素を要変更
+          imgH = items[0].obj.children[0].getBoundingClientRect().height
           items[cnt].obj.style.position = 'absolute'
+          if (cnt === 2) {
+            console.log(Math.round(imgH))
+          }
           items[cnt].obj.style.top = Math.round(i * imgH) + 'px'
           items[cnt].obj.style.left = j * items[cnt].width + '%'
-          this.matrix[i][j] = 1
+          items[cnt].obj.classList.add(cnt)
+          // this.matrix[i][j] = 1
+          // if (items[cnt].col === 2)
+          // items[cnt].col = (cnt === 1) ? 2 : 1
+          // items[cnt].row = (cnt === 1) ? 2 : 1
+          k = 0
+          while (k < items[cnt].row) {
+            l = 0
+            while (l < items[cnt].col) {
+// if (cnt === 1) {
+// console.log({
+//   itm: cnt,
+//   col: items[cnt].col,
+//   row: l
+// })
+// }
+              this.matrix[i + k][j + l] = 1
+              l++
+            }
+            k++
+          }
           cnt++
         }
         j++
