@@ -10,7 +10,7 @@ class Parade {
     this.elm = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelector('.parade')
     this.items = (this.elm !== null) ? [].slice.call(this.elm.children) : ''
     this.rows = 4
-    this.cols = 4
+    this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width)
     this.itemsData = []
     this.Parade()
   }
@@ -23,12 +23,23 @@ class Parade {
       this.itemsData.push(this.SetData(this.items[index]))
     }
     this.SetToMatrix(this.itemsData)
-    window.addEventListener('resize', () => {
-      this.matrix = []
-      this.matrix = this.GenerateMatrix()
-      this.SetToMatrix(this.itemsData)
-console.log(this.matrix)
+    this.itemsData[0].obj.addEventListener('transitionend', () => {
+      this.InitPos()
     })
+    window.addEventListener('resize', () => {
+      this.InitPos()
+    })
+  }
+
+  InitPos () {
+    this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width)
+    this.rows = this.itemsData.length / this.cols
+    this.matrix = []
+    this.matrix = this.GenerateMatrix()
+    for (let index in this.itemsData) {
+      this.itemsData[index] = this.SetData(this.itemsData[index].obj)
+    }
+    this.SetToMatrix(this.itemsData)
 console.log(this.matrix)
   }
 
@@ -36,7 +47,7 @@ console.log(this.matrix)
     const itemBCR = item.getBoundingClientRect()
     return {
       obj: item,
-      width: itemBCR.width,
+      width: 100 / this.cols,
       height: itemBCR.height,
       row: 0,
       col: 0
@@ -75,7 +86,7 @@ console.log(this.matrix)
           imgH = items[cnt].obj.children[0].getBoundingClientRect().height
           items[cnt].obj.style.position = 'absolute'
           items[cnt].obj.style.top = Math.round(i * imgH) + 'px'
-          items[cnt].obj.style.left = j * 25 + '%'
+          items[cnt].obj.style.left = j * items[cnt].width + '%'
           this.matrix[i][j] = 1
           cnt++
         }
