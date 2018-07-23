@@ -44,9 +44,10 @@
       this.args = typeof args !== 'undefined' ? args : {};
       this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.parade');
       this.items = this.elm !== null ? [].slice.call(this.elm.children) : '';
-
-      this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width);
+      this.singleGridItem = document.querySelector('[data-grid="1,1"]');
+      this.cols = this.singleGridItem !== null ? Math.floor(this.elm.getBoundingClientRect().width / this.singleGridItem.getBoundingClientRect().width) : 100;
       this.rows = this.items.length / this.cols;
+      this.verticalGridCnt = 0;
       this.itemsData = [];
       this.Parade();
     }
@@ -57,38 +58,39 @@
         var _this = this;
 
         if (this.items === '') return;
-
         for (var index in this.items) {
           this.itemsData.push(this.SetData(this.items[index]));
         }
-        this.matrix = this.GenerateMatrix();
-        this.SetToMatrix(this.itemsData);
+        this.InitPos(true);
         this.itemsData[0].obj.addEventListener('transitionend', function () {
-          _this.InitPos();
+          _this.InitPos(false);
         });
         window.addEventListener('resize', function () {
-          _this.InitPos();
+          _this.InitPos(false);
         });
-        console.log(this.matrix);
       }
     }, {
       key: 'InitPos',
-      value: function InitPos() {
-        this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width);
-        this.rows = Math.floor(this.itemsData.length / this.cols);
-        this.matrix = [];
-        this.matrix = this.GenerateMatrix();
-        for (var index in this.itemsData) {
-          this.itemsData[index] = this.SetData(this.itemsData[index].obj);
+      value: function InitPos(isFirstTime) {
+        if (!isFirstTime) {
+          this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width);
+          this.rows = Math.floor(this.itemsData.length / this.cols);
+          for (var index in this.itemsData) {
+            this.itemsData[index] = this.SetData(this.itemsData[index].obj);
+          }
+          this.matrix = [];
         }
+        this.verticalGridCnt = 0;
+        this.matrix = this.GenerateMatrix();
         this.SetToMatrix(this.itemsData);
-        console.log(this.matrix);
+        this.elm.style.height = this.allHeight * this.verticalGridCnt + 'px';
       }
     }, {
       key: 'SetData',
       value: function SetData(item) {
         var itemBCR = item.getBoundingClientRect();
         var grid = item.dataset.grid.split(',');
+        if (Number(grid[1]) === 1) this.allHeight = itemBCR.height;
         return {
           obj: item,
           width: 100 / this.cols,
@@ -126,7 +128,6 @@
         var imgH = void 0;
         var skipFlg = false;
         var nextMatrix = 0;
-        console.log(this.matrix);
         while (i < this.matrix.length) {
           j = 0;
           while (j < this.cols) {
@@ -137,12 +138,12 @@
                 skipFlg = true;
                 break;
               }
-
-              imgH = items[0].obj.children[0].getBoundingClientRect().height;
+              imgH = this.singleGridItem.children[0].getBoundingClientRect().height;
               items[cnt].obj.style.position = 'absolute';
               items[cnt].obj.style.top = Math.round(i * imgH) + 'px';
               items[cnt].obj.style.left = j * items[cnt].width + '%';
               items[cnt].obj.classList.add(cnt);
+
               k = 0;
               while (k < items[cnt].row) {
                 l = 0;
@@ -150,11 +151,12 @@
                   this.matrix[i + k][j + l] = 1;
                   l++;
                 }
+
+                if (j === 0 && this.matrix[i][j] === 1) this.verticalGridCnt++;
                 k++;
               }
+
               if (skipFlg) {
-                console.log('skip');
-                console.log(this.matrix);
                 i = j = 0;
                 skipFlg = false;
               }
