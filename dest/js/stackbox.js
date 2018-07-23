@@ -8,7 +8,7 @@
       exports: {}
     };
     factory(mod);
-    global.parade = mod.exports;
+    global.stackbox = mod.exports;
   }
 })(this, function (module) {
   'use strict';
@@ -37,24 +37,24 @@
     };
   }();
 
-  var Parade = function () {
-    function Parade(args) {
-      _classCallCheck(this, Parade);
+  var StackBox = function () {
+    function StackBox(args) {
+      _classCallCheck(this, StackBox);
 
       this.args = typeof args !== 'undefined' ? args : {};
-      this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.parade');
+      this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.stackbox');
       this.items = this.elm !== null ? [].slice.call(this.elm.children) : '';
       this.singleGridItem = document.querySelector('[data-grid="1,1"]');
       this.cols = this.singleGridItem !== null ? Math.floor(this.elm.getBoundingClientRect().width / this.singleGridItem.getBoundingClientRect().width) : 100;
       this.rows = this.items.length / this.cols;
       this.verticalGridCnt = 0;
       this.itemsData = [];
-      this.Parade();
+      this.StackBox();
     }
 
-    _createClass(Parade, [{
-      key: 'Parade',
-      value: function Parade() {
+    _createClass(StackBox, [{
+      key: 'StackBox',
+      value: function StackBox() {
         var _this = this;
 
         if (this.items === '') return;
@@ -168,13 +168,13 @@
       }
     }]);
 
-    return Parade;
+    return StackBox;
   }();
 
   ;
 
-  module.exports = Parade;
+  module.exports = StackBox;
   if (typeof window !== 'undefined') {
-    !window.Parade && (window.Parade = Parade);
+    !window.StackBox && (window.StackBox = StackBox);
   }
 });

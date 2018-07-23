@@ -184,7 +184,6 @@ if (!Object.keys) {
                     this.matrix[y][x] = 'true';
                 }
             }
-console.log(this.matrix)
         },
 
         _getObjectSize: function (obj) { // Helper to get size of object, should probably be moved

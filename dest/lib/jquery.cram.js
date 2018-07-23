@@ -236,7 +236,6 @@ https://github.com/devjam
       };
 
       cram.prototype.searchPosOnGrid = function(matrix, item) {
-// console.log(matrix)
         var br, col_i, col_l, i, j, l, mcols, mrows, o, offx, offy, row_i, row_l, val;
         o = this.options;
         mcols = matrix[0].length - item.cols + 1;

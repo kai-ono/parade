@@ -1,23 +1,23 @@
 'use strict'
 
-class Parade {
+class StackBox {
   /**
      * コンストラクタ
      * @param {Object} args object型の引数。
      */
   constructor (args) {
     this.args = (typeof args !== 'undefined') ? args : {}
-    this.elm = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelector('.parade')
+    this.elm = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelector('.stackbox')
     this.items = (this.elm !== null) ? [].slice.call(this.elm.children) : ''
     this.singleGridItem = document.querySelector('[data-grid="1,1"]')
     this.cols = (this.singleGridItem !== null) ? Math.floor(this.elm.getBoundingClientRect().width / this.singleGridItem.getBoundingClientRect().width) : 100
     this.rows = this.items.length / this.cols
     this.verticalGridCnt = 0
     this.itemsData = []
-    this.Parade()
+    this.StackBox()
   }
 
-  Parade () {
+  StackBox () {
     if (this.items === '') return
     for (let index in this.items) {
       this.itemsData.push(this.SetData(this.items[index]))
@@ -127,7 +127,7 @@ class Parade {
   }
 };
 
-module.exports = Parade
+module.exports = StackBox
 if (typeof window !== 'undefined') {
-  !window.Parade && (window.Parade = Parade)
+  !window.StackBox && (window.StackBox = StackBox)
 }
