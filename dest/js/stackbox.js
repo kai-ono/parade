@@ -103,10 +103,10 @@
       key: 'GenerateMatrix',
       value: function GenerateMatrix() {
         var tmpMatrix = [];
+        var marginRows = 10;
         var i = 0;
         var j = void 0;
-
-        while (i < this.rows + 2) {
+        while (i < this.rows + marginRows) {
           j = 0;
           tmpMatrix[i] = [];
           while (j < this.cols) {

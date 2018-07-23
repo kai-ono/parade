@@ -61,10 +61,10 @@ class StackBox {
 
   GenerateMatrix () {
     let tmpMatrix = []
+    let marginRows = 10
     let i = 0
     let j
-    // プラス2はデバッグ用
-    while (i < this.rows + 2) {
+    while (i < this.rows + marginRows) {
       j = 0
       tmpMatrix[i] = []
       while (j < this.cols) {
