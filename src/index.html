@@ -3,32 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>parade demo</title>
-  <link rel="stylesheet" href="lib/prism.css">
-  <script src="lib/prism.js"></script>
-  <link rel="stylesheet" type="text/css" href="css/style.css"/>  
-  <script type="text/javascript" src="js/parade.js"></script>
+  <title>stackbox demo</title>
+  <!-- <link rel="stylesheet" href="lib/prism.css">
+  <script src="lib/prism.js"></script> -->
+  <link rel="stylesheet" type="text/css" href="css/style.css"/>
+  <script type="text/javascript" src="js/stackbox.js"></script>
+  <script
+    src="https://code.jquery.com/jquery-1.12.4.min.js"
+    integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+    crossorigin="anonymous"></script>
+  <script type="text/javascript" src="lib/jquery.cram.js"></script>
+  <script type="text/javascript" src="lib/jquery.nested.js"></script>
+  <style>
+
+  </style>
 </head>
 <body>
-  <div style="max-width: 900px; margin: 0 auto;">
-    <div class="parade">
-      <ul>
-        <li><img src="img/thumb1.jpg" /></li>
-        <li><img src="img/thumb2.jpg" /></li>
-        <li><img src="img/thumb3.jpg" /></li>
-        <li><img src="img/thumb4.jpg" /></li>
-        <!-- <li><img src="img/thumb5.jpg" /></li>
-        <li><img src="img/thumb6.jpg" /></li>
-        <li><img src="img/thumb7.jpg" /></li>
-        <li><img src="img/thumb8.jpg" /></li>
-        <li><img src="img/thumb9.jpg" /></li> -->
-      </ul>
-    </div>
-    <pre class="line-numbers"><code class="language-javascript" data-language="javascript">new Parade();</code></pre>
+  <div class="stackbox items">
+      <div data-grid="1,1"><img src="img/thumb1.jpg" /></div>
+      <div data-grid="2,2" class="sizeL"><img src="img/thumb2.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb3.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb4.jpg" /></div>
+      <div data-grid="2,2" class="sizeL"><img src="img/thumb5.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb6.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb7.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb8.jpg" /></div>
+      <div data-grid="1,1"><img src="img/thumb9.jpg" /></div>
+  </div>
+  <!-- <pre class="line-numbers"><code class="language-javascript" data-language="javascript">new Parade();</code></pre> -->
+
+  <!-- <div class="cram items">
+    <div><img src="img/thumb1.jpg" /></div>
+    <div><img src="img/thumb2.jpg" /></div>
+    <div><img src="img/thumb3.jpg" /></div>
+    <div><img src="img/thumb4.jpg" /></div>
+    <div><img src="img/thumb5.jpg" /></div>
+    <div><img src="img/thumb6.jpg" /></div>
+    <div><img src="img/thumb7.jpg" /></div>
+    <div><img src="img/thumb8.jpg" /></div>
+    <div><img src="img/thumb9.jpg" /></div>
   </div>
 
-  <script type="text/javascript">
+  <div class="container items">
+    <div class="box"><img src="img/thumb1.jpg" /></div>
+    <div class="box"><img src="img/thumb2.jpg" /></div>
+    <div class="box"><img src="img/thumb3.jpg" /></div>
+    <div class="box"><img src="img/thumb4.jpg" /></div>
+    <div class="box"><img src="img/thumb5.jpg" /></div>
+    <div class="box"><img src="img/thumb6.jpg" /></div>
+    <div class="box"><img src="img/thumb7.jpg" /></div>
+    <div class="box"><img src="img/thumb8.jpg" /></div>
+    <div class="box"><img src="img/thumb9.jpg" /></div>
+  </div> -->
+
+<script type="text/javascript">
     new Parade();
+    // $('.cram').cram();
+    // $(".cram").cram.update();
+    // $(".container").nested({
+    //   minWidth: 100,
+    //   gutter: 10,
+    //   animate: true,
+    //   animationOptions: {
+    //     speed: 10,
+    //     duration: 20
+    //   }
+    // })
   </script>
 </body>
 </html>

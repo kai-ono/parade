@@ -1,3 +1,38 @@
 /*------------------------------------------
   Styles
 ------------------------------------------*/
+* {
+  margin: 0;
+  padding: 0;
+}
+img {
+  vertical-align: top;
+}
+.items {
+  position: relative;
+  width: 80vw;
+  margin: 0 auto;
+  margin-bottom:50px;
+  background-color: blue;
+  & > * {
+    width: calc(100 / 4 * 1%);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out 0s;
+    @media (max-width: 700px) {
+      width: calc(100 / 3 * 1%);
+    }
+    &.sizeL {
+      width: calc(100 / 4 * 2%);
+      @media (max-width: 700px) {
+        width: calc(100 / 3 * 2%);
+      }
+    }
+  }
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+.cram > * {
+  position: absolute;
+}

@@ -33,6 +33,7 @@
     "img": "gulp img",
     "css": "gulp css",
     "js": "gulp js",
+    "lib": "gulp lib",
     "server": "gulp server",
     "watch": "gulp watch",
     "start": "gulp",

@@ -33,4 +33,13 @@ module.exports = function (gulp) {
       .pipe(uglify())
       .pipe(gulp.dest('dest/js/'))
   })
+
+  gulp.task('lib', function () {
+    const del = require('del')
+
+    del('dest/lib/*')
+
+    return gulp.src('./src/lib/*')
+      .pipe(gulp.dest('./dest/lib'))
+  })
 }
