@@ -4,10 +4,6 @@
   "description": "https://kai-ono.github.io/stackbox/dest/",
   "main": "dest/js/stackbox.js",
   "keywords": [
-    "slider",
-    "caroucel",
-    "gallery",
-    "responsive"
   ],
   "repository": {
     "type": "git",
