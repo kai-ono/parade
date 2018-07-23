@@ -12,8 +12,6 @@ class Parade {
     // this.items[0]は不確定要素なので何とかしたい
     this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width)
     this.rows = this.items.length / this.cols
-    this.gridW = Math.floor(this.elm.getBoundingClientRect().width * (100 / this.cols / 100))
-    // this.gridH = Math.floor(this.elm.getBoundingClientRect().height * (100 / this.rows / 100))
     this.itemsData = []
     this.Parade()
   }
@@ -37,7 +35,7 @@ console.log(this.matrix)
 
   InitPos () {
     this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width)
-    this.rows = this.itemsData.length / this.cols
+    this.rows = Math.floor(this.itemsData.length / this.cols)
     this.matrix = []
     this.matrix = this.GenerateMatrix()
     for (let index in this.itemsData) {
@@ -49,12 +47,6 @@ console.log(this.matrix)
 
   SetData (item) {
     const itemBCR = item.getBoundingClientRect()
-// console.log({
-//   grid: this.gridW,
-//   b: Math.floor(item.getBoundingClientRect().width),
-//   c: Math.floor(item.getBoundingClientRect().width / this.gridW)
-// })
-
     const grid = item.dataset.grid.split(',')
     return {
       obj: item,
@@ -74,7 +66,7 @@ console.log(this.matrix)
       j = 0
       tmpMatrix[i] = []
       while (j < this.cols) {
-        tmpMatrix[i][j] = 0 // (i === 0 && j === 3) ? 1 : 0
+        tmpMatrix[i][j] = 0
         j++
       }
       i++
@@ -89,34 +81,33 @@ console.log(this.matrix)
     let k
     let l
     let imgH
-    // プラス2はデバッグ用
-    while (i < this.rows + 2) {
+    let skipFlg = false
+    let nextMatrix = 0
+    console.log(this.matrix)
+    while (i < this.matrix.length) {
       j = 0
       while (j < this.cols) {
         if (typeof items[cnt] === 'undefined') return
         if (this.matrix[i][j] === 0) {
-          console.log({
-            cnt: cnt,
-            j: j,
-            col: items[cnt].col,
-            next: this.matrix[i][j + items[cnt].col - 1],
-            top: Math.round(i * imgH),
-            left: j * items[cnt].width
-          })
-          if (typeof this.matrix[i][j + items[cnt].col - 1] === 'undefined') break
+// console.log({
+//   cnt: cnt,
+//   j: j,
+//   col: items[cnt].col,
+//   next: this.matrix[i][j + items[cnt].col - 1],
+//   top: Math.round(i * imgH),
+//   left: j * items[cnt].width
+// })
+          nextMatrix = this.matrix[i][j + items[cnt].col - 1]
+          if (typeof nextMatrix === 'undefined' || nextMatrix === 1) {
+            skipFlg = true
+            break
+          }
           // items[0]が不確定要素。参照する要素を要変更
           imgH = items[0].obj.children[0].getBoundingClientRect().height
           items[cnt].obj.style.position = 'absolute'
-          if (cnt === 2) {
-            console.log(Math.round(imgH))
-          }
           items[cnt].obj.style.top = Math.round(i * imgH) + 'px'
           items[cnt].obj.style.left = j * items[cnt].width + '%'
           items[cnt].obj.classList.add(cnt)
-          // this.matrix[i][j] = 1
-          // if (items[cnt].col === 2)
-          // items[cnt].col = (cnt === 1) ? 2 : 1
-          // items[cnt].row = (cnt === 1) ? 2 : 1
           k = 0
           while (k < items[cnt].row) {
             l = 0
@@ -132,6 +123,12 @@ console.log(this.matrix)
               l++
             }
             k++
+          }
+          if (skipFlg) {
+            console.log('skip')
+            console.log(this.matrix)
+            i = j = 0
+            skipFlg = false
           }
           cnt++
         }
