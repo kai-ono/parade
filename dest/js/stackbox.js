@@ -39,58 +39,97 @@
 
   var StackBox = function () {
     function StackBox(args) {
+      var _this = this;
+
       _classCallCheck(this, StackBox);
 
       this.args = typeof args !== 'undefined' ? args : {};
       this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.stackbox');
+      this.baseWidth = typeof this.args.baseWidth !== 'undefined' ? this.args.baseWidth : 1920;
+      this.itemWidth = typeof this.args.itemWidth !== 'undefined' ? this.args.itemWidth : 200;
+      this.itemHeight = typeof this.args.itemHeight !== 'undefined' ? this.args.itemHeight : 200;
+      this.onLoad = typeof this.args.onLoad !== 'undefined' ? this.args.onLoad : null;
       this.items = this.elm !== null ? [].slice.call(this.elm.children) : '';
       this.singleGridItem = document.querySelector('[data-grid="1,1"]');
-      this.cols = this.singleGridItem !== null ? Math.floor(this.elm.getBoundingClientRect().width / this.singleGridItem.getBoundingClientRect().width) : 100;
-      this.rows = this.items.length / this.cols;
       this.verticalGridCnt = 0;
       this.itemsData = [];
+
+      this.liquid = typeof this.args.liquid !== 'undefined' ? this.args.liquid : {};
+      this.liquid.maxWidth = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.maxWidth : 0;
+      this.liquid.cols = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.cols : 0;
+
+      this.colsOrg = typeof this.args.cols !== 'undefined' ? this.args.cols : 1;
+      this.cols = window.innerWidth > this.liquid.maxWidth ? this.colsOrg : this.liquid.cols;
+      this.rows = this.items.length / this.cols;
+
+      this.eventHolder = function () {
+        _this.InitPos();
+      };
+
       this.StackBox();
     }
 
     _createClass(StackBox, [{
       key: 'StackBox',
       value: function StackBox() {
-        var _this = this;
+        var _this2 = this;
 
         if (this.items === '') return;
-        for (var index in this.items) {
-          this.itemsData.push(this.SetData(this.items[index]));
+        for (var i in this.items) {
+          this.itemsData.push(this.SetData(this.items[i]));
         }
-        this.InitPos(true);
-        this.itemsData[0].obj.addEventListener('transitionend', function () {
-          _this.InitPos(false);
+
+        this.InitPos().then(function (elm) {
+          _this2.onLoad(elm);
         });
-        window.addEventListener('resize', function () {
-          _this.InitPos(false);
+
+        this.itemsData[0].obj.addEventListener('transitionend', function (e) {
+          if (e.propertyName === 'height') {
+            _this2.InitPos();
+          }
         });
+
+        this.SetWindowEvent();
+      }
+    }, {
+      key: 'SetWindowEvent',
+      value: function SetWindowEvent() {
+        window.addEventListener('resize', this.eventHolder);
+      }
+    }, {
+      key: 'DestroyWindowEvent',
+      value: function DestroyWindowEvent() {
+        window.removeEventListener('resize', this.eventHolder);
       }
     }, {
       key: 'InitPos',
-      value: function InitPos(isFirstTime) {
-        if (!isFirstTime) {
-          this.cols = Math.floor(this.elm.getBoundingClientRect().width / this.items[0].getBoundingClientRect().width);
-          this.rows = Math.floor(this.itemsData.length / this.cols);
-          for (var index in this.itemsData) {
-            this.itemsData[index] = this.SetData(this.itemsData[index].obj);
-          }
-          this.matrix = [];
+      value: function InitPos() {
+        if (this.liquid.maxWidth !== 0) {
+          this.cols = window.innerWidth > this.liquid.maxWidth ? this.colsOrg : this.liquid.cols;
         }
+        this.rows = Math.floor(this.itemsData.length / this.cols);
+        for (var i in this.itemsData) {
+          this.itemsData[i] = this.SetData(this.itemsData[i].obj);
+        }
+        this.matrix = [];
         this.verticalGridCnt = 0;
         this.matrix = this.GenerateMatrix();
         this.SetToMatrix(this.itemsData);
-        this.elm.style.height = this.allHeight * this.verticalGridCnt + 'px';
+
+        this.singleGrid = this.items.filter(function (item, index) {
+          return item.dataset.grid.indexOf('1,1') >= 0;
+        });
+        this.singleGridHeight = this.singleGrid[0].getBoundingClientRect().height;
+        this.elm.style.height = this.singleGridHeight * (this.verticalGridCnt + 1) + 'px';
+
+        return Promise.resolve(this.elm);
       }
     }, {
       key: 'SetData',
       value: function SetData(item) {
         var itemBCR = item.getBoundingClientRect();
         var grid = item.dataset.grid.split(',');
-        if (Number(grid[1]) === 1) this.allHeight = itemBCR.height;
+        if (Number(grid[0]) === 1) this.allHeight = itemBCR.height;
         return {
           obj: item,
           width: 100 / this.cols,
@@ -102,12 +141,11 @@
     }, {
       key: 'GenerateMatrix',
       value: function GenerateMatrix() {
-        var tmpMatrix = [];
         var marginRows = 10;
+        var tmpMatrix = [];
         var i = 0;
-        var j = void 0;
         while (i < this.rows + marginRows) {
-          j = 0;
+          var j = 0;
           tmpMatrix[i] = [];
           while (j < this.cols) {
             tmpMatrix[i][j] = 0;
@@ -120,38 +158,40 @@
     }, {
       key: 'SetToMatrix',
       value: function SetToMatrix(items) {
+        var skipFlg = false;
         var cnt = 0;
         var i = 0;
-        var j = void 0;
-        var k = void 0;
-        var l = void 0;
-        var imgH = void 0;
-        var skipFlg = false;
-        var nextMatrix = 0;
         while (i < this.matrix.length) {
-          j = 0;
+          var j = 0;
           while (j < this.cols) {
             if (typeof items[cnt] === 'undefined') return;
             if (this.matrix[i][j] === 0) {
-              nextMatrix = this.matrix[i][j + items[cnt].col - 1];
+              var nextMatrix = this.matrix[i][j + items[cnt].col - 1];
               if (typeof nextMatrix === 'undefined' || nextMatrix === 1) {
                 skipFlg = true;
                 break;
               }
-              imgH = this.singleGridItem.children[0].getBoundingClientRect().height;
+
+              items[cnt].obj.style.width = items[cnt].width * items[cnt].col + '%';
+
+              var ratio = Math.round(this.singleGridItem.getBoundingClientRect().width / this.itemWidth * 100) / 100;
+              var itemH = Math.round(this.itemHeight * ratio);
+
+              items[cnt].obj.style.height = Math.round(itemH * items[cnt].row) + 'px';
+
               items[cnt].obj.style.position = 'absolute';
-              items[cnt].obj.style.top = Math.round(i * imgH) + 'px';
+              items[cnt].obj.style.top = Math.round(i * itemH) + 'px';
               items[cnt].obj.style.left = j * items[cnt].width + '%';
 
-              k = 0;
+              var k = 0;
               while (k < items[cnt].row) {
-                l = 0;
+                var l = 0;
                 while (l < items[cnt].col) {
                   this.matrix[i + k][j + l] = 1;
+                  if (this.verticalGridCnt < i + k) this.verticalGridCnt = i + k;
                   l++;
                 }
 
-                if (j === 0 && this.matrix[i][j] === 1) this.verticalGridCnt++;
                 k++;
               }
 
