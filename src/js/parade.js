@@ -99,7 +99,6 @@ class Parade {
           items[cnt].obj.style.position = 'absolute'
           items[cnt].obj.style.top = Math.round(i * imgH) + 'px'
           items[cnt].obj.style.left = j * items[cnt].width + '%'
-          items[cnt].obj.classList.add(cnt)
 
           // 要素のGridの大きさに合わせてmatrixを埋める処理
           k = 0
