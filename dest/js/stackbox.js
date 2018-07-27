@@ -188,10 +188,10 @@
                 var l = 0;
                 while (l < items[cnt].col) {
                   this.matrix[i + k][j + l] = 1;
+
                   if (this.verticalGridCnt < i + k) this.verticalGridCnt = i + k;
                   l++;
                 }
-
                 k++;
               }
 

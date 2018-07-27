@@ -164,11 +164,10 @@ class StackBox {
             let l = 0
             while (l < items[cnt].col) {
               this.matrix[i + k][j + l] = 1
+              // 親要素の高さ計算のため、要素が存在している最後のrowを取得する
               if (this.verticalGridCnt < i + k) this.verticalGridCnt = i + k
               l++
             }
-            // 親要素の高さ計算のため、matrixの各行の1カラム目が1の場合にカウントアップする
-            // if (this.matrix[i].indexOf(1) >= 0) this.verticalGridCnt++
             k++
           }
 
