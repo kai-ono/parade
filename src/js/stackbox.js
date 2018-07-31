@@ -16,7 +16,10 @@ class StackBox {
     this.singleGridItem = document.querySelector('[data-grid="1,1"]')
     this.verticalGridCnt = 0
     this.itemsData = []
-
+    console.log({
+      item: this.singleGridItem,
+      height: this.singleGridItem.offsetWidth
+    })
     this.liquid = (typeof this.args.liquid !== 'undefined') ? this.args.liquid : {}
     this.liquid.maxWidth = (typeof this.args.liquid.maxWidth !== 'undefined') ? this.args.liquid.maxWidth : 0
     this.liquid.cols = (typeof this.args.liquid.maxWidth !== 'undefined') ? this.args.liquid.cols : 0
@@ -38,6 +41,15 @@ class StackBox {
     for (let i in this.items) {
       this.itemsData.push(this.SetData(this.items[i]))
     }
+
+    /**
+     * this.singleGridItemに該当する要素がthis.itemsDataの最初に定義されていないと
+     * getBoundingClientRectで要素の幅、高さが取得できずに崩れが発生するので、ダミー要素を入れておく
+     */
+    this.singleGrid = this.items.filter((item, index) => {
+      return item.dataset.grid.indexOf('1,1') >= 0
+    })
+    this.itemsData.unshift(this.SetData(this.singleGrid[0]))
 
     this.InitPos().then((elm) => {
       this.onLoad(elm)
@@ -62,26 +74,28 @@ class StackBox {
   }
 
   InitPos () {
-    if (this.liquid.maxWidth !== 0) {
-      this.cols = (window.innerWidth > this.liquid.maxWidth) ? this.colsOrg : this.liquid.cols
-    }
-    this.rows = Math.floor(this.itemsData.length / this.cols)
-    for (let i in this.itemsData) {
-      this.itemsData[i] = this.SetData(this.itemsData[i].obj)
-    }
-    this.matrix = []
-    this.verticalGridCnt = 0
-    this.matrix = this.GenerateMatrix()
-    this.SetToMatrix(this.itemsData)
+    return new Promise((resolve) => {
+      if (this.liquid.maxWidth !== 0) {
+        this.cols = (window.innerWidth > this.liquid.maxWidth) ? this.colsOrg : this.liquid.cols
+      }
+      this.rows = Math.floor(this.itemsData.length / this.cols)
+      for (let i in this.itemsData) {
+        this.itemsData[i] = this.SetData(this.itemsData[i].obj)
+      }
+      this.matrix = []
+      this.verticalGridCnt = 0
+      this.matrix = this.GenerateMatrix()
+      this.SetToMatrix(this.itemsData)
 
-    // data-gridに1,1が設定されている要素の高さを1Grid分と定義する
-    this.singleGrid = this.items.filter((item, index) => {
-      return item.dataset.grid.indexOf('1,1') >= 0
+      // data-gridに1,1が設定されている要素の高さを1Grid分と定義する
+      this.singleGrid = this.items.filter((item, index) => {
+        return item.dataset.grid.indexOf('1,1') >= 0
+      })
+      this.singleGridHeight = this.singleGrid[0].getBoundingClientRect().height
+      this.elm.style.height = this.singleGridHeight * (this.verticalGridCnt + 1) + 'px'
+
+      return resolve(this.elm)
     })
-    this.singleGridHeight = this.singleGrid[0].getBoundingClientRect().height
-    this.elm.style.height = this.singleGridHeight * (this.verticalGridCnt + 1) + 'px'
-
-    return Promise.resolve(this.elm)
   }
 
   SetData (item) {
@@ -91,7 +105,6 @@ class StackBox {
     return {
       obj: item,
       width: 100 / this.cols,
-      height: itemBCR.height,
       row: Number(grid[0]),
       col: Number(grid[1])
     }
@@ -115,6 +128,7 @@ class StackBox {
 
   SetToMatrix (items) {
     let skipFlg = false
+    let dummyItem = true
     let cnt = 0
     let i = 0
     while (i < this.matrix.length) {
@@ -152,6 +166,16 @@ class StackBox {
            */
           items[cnt].obj.style.height = Math.round(itemH * items[cnt].row) + 'px'
 
+          /**
+           * 配列itemsの先頭には1Grid分を計算するためのダミー要素が入っているため、
+           * 計算に必要なheightを設定したら処理を次のitemsに移す
+           */
+          if (dummyItem) {
+            dummyItem = false
+            cnt++
+            continue
+          }
+
           items[cnt].obj.style.position = 'absolute'
           items[cnt].obj.style.top = Math.round(i * itemH) + 'px'
           items[cnt].obj.style.left = j * items[cnt].width + '%'
@@ -183,7 +207,7 @@ class StackBox {
       i++
     }
   }
-};
+}
 
 module.exports = StackBox
 if (typeof window !== 'undefined') {

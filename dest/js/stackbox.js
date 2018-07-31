@@ -53,7 +53,10 @@
       this.singleGridItem = document.querySelector('[data-grid="1,1"]');
       this.verticalGridCnt = 0;
       this.itemsData = [];
-
+      console.log({
+        item: this.singleGridItem,
+        height: this.singleGridItem.offsetWidth
+      });
       this.liquid = typeof this.args.liquid !== 'undefined' ? this.args.liquid : {};
       this.liquid.maxWidth = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.maxWidth : 0;
       this.liquid.cols = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.cols : 0;
@@ -78,6 +81,11 @@
         for (var i in this.items) {
           this.itemsData.push(this.SetData(this.items[i]));
         }
+
+        this.singleGrid = this.items.filter(function (item, index) {
+          return item.dataset.grid.indexOf('1,1') >= 0;
+        });
+        this.itemsData.unshift(this.SetData(this.singleGrid[0]));
 
         this.InitPos().then(function (elm) {
           _this2.onLoad(elm);
@@ -104,25 +112,29 @@
     }, {
       key: 'InitPos',
       value: function InitPos() {
-        if (this.liquid.maxWidth !== 0) {
-          this.cols = window.innerWidth > this.liquid.maxWidth ? this.colsOrg : this.liquid.cols;
-        }
-        this.rows = Math.floor(this.itemsData.length / this.cols);
-        for (var i in this.itemsData) {
-          this.itemsData[i] = this.SetData(this.itemsData[i].obj);
-        }
-        this.matrix = [];
-        this.verticalGridCnt = 0;
-        this.matrix = this.GenerateMatrix();
-        this.SetToMatrix(this.itemsData);
+        var _this3 = this;
 
-        this.singleGrid = this.items.filter(function (item, index) {
-          return item.dataset.grid.indexOf('1,1') >= 0;
+        return new Promise(function (resolve) {
+          if (_this3.liquid.maxWidth !== 0) {
+            _this3.cols = window.innerWidth > _this3.liquid.maxWidth ? _this3.colsOrg : _this3.liquid.cols;
+          }
+          _this3.rows = Math.floor(_this3.itemsData.length / _this3.cols);
+          for (var i in _this3.itemsData) {
+            _this3.itemsData[i] = _this3.SetData(_this3.itemsData[i].obj);
+          }
+          _this3.matrix = [];
+          _this3.verticalGridCnt = 0;
+          _this3.matrix = _this3.GenerateMatrix();
+          _this3.SetToMatrix(_this3.itemsData);
+
+          _this3.singleGrid = _this3.items.filter(function (item, index) {
+            return item.dataset.grid.indexOf('1,1') >= 0;
+          });
+          _this3.singleGridHeight = _this3.singleGrid[0].getBoundingClientRect().height;
+          _this3.elm.style.height = _this3.singleGridHeight * (_this3.verticalGridCnt + 1) + 'px';
+
+          return resolve(_this3.elm);
         });
-        this.singleGridHeight = this.singleGrid[0].getBoundingClientRect().height;
-        this.elm.style.height = this.singleGridHeight * (this.verticalGridCnt + 1) + 'px';
-
-        return Promise.resolve(this.elm);
       }
     }, {
       key: 'SetData',
@@ -133,7 +145,6 @@
         return {
           obj: item,
           width: 100 / this.cols,
-          height: itemBCR.height,
           row: Number(grid[0]),
           col: Number(grid[1])
         };
@@ -159,6 +170,7 @@
       key: 'SetToMatrix',
       value: function SetToMatrix(items) {
         var skipFlg = false;
+        var dummyItem = true;
         var cnt = 0;
         var i = 0;
         while (i < this.matrix.length) {
@@ -178,6 +190,12 @@
               var itemH = Math.round(this.itemHeight * ratio);
 
               items[cnt].obj.style.height = Math.round(itemH * items[cnt].row) + 'px';
+
+              if (dummyItem) {
+                dummyItem = false;
+                cnt++;
+                continue;
+              }
 
               items[cnt].obj.style.position = 'absolute';
               items[cnt].obj.style.top = Math.round(i * itemH) + 'px';
@@ -210,8 +228,6 @@
 
     return StackBox;
   }();
-
-  ;
 
   module.exports = StackBox;
   if (typeof window !== 'undefined') {
