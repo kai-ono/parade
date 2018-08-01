@@ -45,18 +45,14 @@
 
       this.args = typeof args !== 'undefined' ? args : {};
       this.elm = typeof this.args.elm !== 'undefined' ? this.args.elm : document.querySelector('.stackbox');
+      this.singleGridItem = this.elm.querySelector('[data-grid="1,1"]');
       this.baseWidth = typeof this.args.baseWidth !== 'undefined' ? this.args.baseWidth : 1920;
       this.itemWidth = typeof this.args.itemWidth !== 'undefined' ? this.args.itemWidth : 200;
       this.itemHeight = typeof this.args.itemHeight !== 'undefined' ? this.args.itemHeight : 200;
       this.onLoad = typeof this.args.onLoad !== 'undefined' ? this.args.onLoad : null;
       this.items = this.elm !== null ? [].slice.call(this.elm.children) : '';
-      this.singleGridItem = document.querySelector('[data-grid="1,1"]');
       this.verticalGridCnt = 0;
       this.itemsData = [];
-      console.log({
-        item: this.singleGridItem,
-        height: this.singleGridItem.offsetWidth
-      });
       this.liquid = typeof this.args.liquid !== 'undefined' ? this.args.liquid : {};
       this.liquid.maxWidth = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.maxWidth : 0;
       this.liquid.cols = typeof this.args.liquid.maxWidth !== 'undefined' ? this.args.liquid.cols : 0;
@@ -65,8 +61,11 @@
       this.cols = window.innerWidth > this.liquid.maxWidth ? this.colsOrg : this.liquid.cols;
       this.rows = this.items.length / this.cols;
 
-      this.eventHolder = function () {
-        _this.InitPos();
+      this.resizeEvents = function () {
+        clearTimeout(_this.resizeTimer);
+        _this.resizeTimer = setTimeout(function () {
+          _this.InitPos();
+        }, 100);
       };
 
       this.StackBox();
@@ -78,21 +77,19 @@
         var _this2 = this;
 
         if (this.items === '') return;
-        for (var i in this.items) {
-          this.itemsData.push(this.SetData(this.items[i]));
-        }
 
-        this.singleGrid = this.items.filter(function (item, index) {
-          return item.dataset.grid.indexOf('1,1') >= 0;
-        });
-        this.itemsData.unshift(this.SetData(this.singleGrid[0]));
+        this.SetSingleGridData();
+        this.itemsData.push(this.singleGrid);
+        for (var i in this.items) {
+          this.itemsData.push(this.SetData(this.items[i], false));
+        }
 
         this.InitPos().then(function (elm) {
           _this2.onLoad(elm);
         });
 
-        this.itemsData[0].obj.addEventListener('transitionend', function (e) {
-          if (e.propertyName === 'height') {
+        this.itemsData[1].obj.addEventListener('transitionend', function (e) {
+          if (e.propertyName === 'height' || e.propertyName === 'opacity') {
             _this2.InitPos();
           }
         });
@@ -102,12 +99,12 @@
     }, {
       key: 'SetWindowEvent',
       value: function SetWindowEvent() {
-        window.addEventListener('resize', this.eventHolder);
+        window.addEventListener('resize', this.resizeEvents);
       }
     }, {
       key: 'DestroyWindowEvent',
       value: function DestroyWindowEvent() {
-        window.removeEventListener('resize', this.eventHolder);
+        window.removeEventListener('resize', this.resizeEvents);
       }
     }, {
       key: 'InitPos',
@@ -119,35 +116,40 @@
             _this3.cols = window.innerWidth > _this3.liquid.maxWidth ? _this3.colsOrg : _this3.liquid.cols;
           }
           _this3.rows = Math.floor(_this3.itemsData.length / _this3.cols);
+          _this3.SetSingleGridData();
           for (var i in _this3.itemsData) {
-            _this3.itemsData[i] = _this3.SetData(_this3.itemsData[i].obj);
+            _this3.itemsData[i] = _this3.SetData(_this3.itemsData[i].obj, false);
           }
           _this3.matrix = [];
           _this3.verticalGridCnt = 0;
           _this3.matrix = _this3.GenerateMatrix();
           _this3.SetToMatrix(_this3.itemsData);
-
-          _this3.singleGrid = _this3.items.filter(function (item, index) {
-            return item.dataset.grid.indexOf('1,1') >= 0;
-          });
-          _this3.singleGridHeight = _this3.singleGrid[0].getBoundingClientRect().height;
-          _this3.elm.style.height = _this3.singleGridHeight * (_this3.verticalGridCnt + 1) + 'px';
+          _this3.elm.style.height = _this3.singleGrid.obj.getBoundingClientRect().height * (_this3.verticalGridCnt + 1) + 'px';
 
           return resolve(_this3.elm);
         });
       }
     }, {
+      key: 'SetSingleGridData',
+      value: function SetSingleGridData() {
+        var tmpSingleGridArr = this.items.filter(function (item, index) {
+          return item.dataset.grid.indexOf('1,1') >= 0;
+        });
+        this.singleGrid = this.SetData(tmpSingleGridArr[0], true);
+      }
+    }, {
       key: 'SetData',
-      value: function SetData(item) {
-        var itemBCR = item.getBoundingClientRect();
+      value: function SetData(item, isSingle) {
         var grid = item.dataset.grid.split(',');
-        if (Number(grid[0]) === 1) this.allHeight = itemBCR.height;
-        return {
+        var tmpObj = {
           obj: item,
-          width: 100 / this.cols,
           row: Number(grid[0]),
           col: Number(grid[1])
         };
+        if (isSingle) {
+          tmpObj.perWidth = 100 / this.cols;
+        }
+        return tmpObj;
       }
     }, {
       key: 'GenerateMatrix',
@@ -184,9 +186,9 @@
                 break;
               }
 
-              items[cnt].obj.style.width = items[cnt].width * items[cnt].col + '%';
+              items[cnt].obj.style.width = this.singleGrid.perWidth * items[cnt].col + '%';
 
-              var ratio = Math.round(this.singleGridItem.getBoundingClientRect().width / this.itemWidth * 100) / 100;
+              var ratio = Math.round(this.singleGrid.obj.getBoundingClientRect().width / this.itemWidth * 100) / 100;
               var itemH = Math.round(this.itemHeight * ratio);
 
               items[cnt].obj.style.height = Math.round(itemH * items[cnt].row) + 'px';
@@ -199,7 +201,7 @@
 
               items[cnt].obj.style.position = 'absolute';
               items[cnt].obj.style.top = Math.round(i * itemH) + 'px';
-              items[cnt].obj.style.left = j * items[cnt].width + '%';
+              items[cnt].obj.style.left = j * this.singleGrid.perWidth + '%';
 
               var k = 0;
               while (k < items[cnt].row) {

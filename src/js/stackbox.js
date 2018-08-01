@@ -8,18 +8,14 @@ class StackBox {
   constructor (args) {
     this.args = (typeof args !== 'undefined') ? args : {}
     this.elm = (typeof this.args.elm !== 'undefined') ? this.args.elm : document.querySelector('.stackbox')
+    this.singleGridItem = this.elm.querySelector('[data-grid="1,1"]')
     this.baseWidth = (typeof this.args.baseWidth !== 'undefined') ? this.args.baseWidth : 1920
     this.itemWidth = (typeof this.args.itemWidth !== 'undefined') ? this.args.itemWidth : 200
     this.itemHeight = (typeof this.args.itemHeight !== 'undefined') ? this.args.itemHeight : 200
     this.onLoad = (typeof this.args.onLoad !== 'undefined') ? this.args.onLoad : null
     this.items = (this.elm !== null) ? [].slice.call(this.elm.children) : ''
-    this.singleGridItem = document.querySelector('[data-grid="1,1"]')
     this.verticalGridCnt = 0
     this.itemsData = []
-    console.log({
-      item: this.singleGridItem,
-      height: this.singleGridItem.offsetWidth
-    })
     this.liquid = (typeof this.args.liquid !== 'undefined') ? this.args.liquid : {}
     this.liquid.maxWidth = (typeof this.args.liquid.maxWidth !== 'undefined') ? this.args.liquid.maxWidth : 0
     this.liquid.cols = (typeof this.args.liquid.maxWidth !== 'undefined') ? this.args.liquid.cols : 0
@@ -29,8 +25,11 @@ class StackBox {
     this.rows = this.items.length / this.cols
 
     // removeEventListenerするために変数に格納
-    this.eventHolder = () => {
-      this.InitPos()
+    this.resizeEvents = () => {
+      clearTimeout(this.resizeTimer)
+      this.resizeTimer = setTimeout(() => {
+        this.InitPos()
+      }, 100)
     }
 
     this.StackBox()
@@ -38,39 +37,42 @@ class StackBox {
 
   StackBox () {
     if (this.items === '') return
-    for (let i in this.items) {
-      this.itemsData.push(this.SetData(this.items[i]))
-    }
 
     /**
-     * this.singleGridItemに該当する要素がthis.itemsDataの最初に定義されていないと
-     * getBoundingClientRectで要素の幅、高さが取得できずに崩れが発生するので、ダミー要素を入れておく
+     * this.singleGridに該当する要素がthis.itemsDataの最初に定義されていないと
+     * getBoundingClientRectで要素の幅、高さが取得できずに崩れが発生するので、先頭に要素を入れておく
      */
-    this.singleGrid = this.items.filter((item, index) => {
-      return item.dataset.grid.indexOf('1,1') >= 0
-    })
-    this.itemsData.unshift(this.SetData(this.singleGrid[0]))
+    this.SetSingleGridData()
+    this.itemsData.push(this.singleGrid)
+    for (let i in this.items) {
+      this.itemsData.push(this.SetData(this.items[i], false))
+    }
 
     this.InitPos().then((elm) => {
       this.onLoad(elm)
     })
 
-    this.itemsData[0].obj.addEventListener('transitionend', (e) => {
-      if (e.propertyName === 'height') {
+    // itemsData[0]はダミーなのでitemsData[1]のtransitionendを基準とする
+    this.itemsData[1].obj.addEventListener('transitionend', (e) => {
+      /** TODO
+       * transitionのプロパティによっては発動しない可能性があるので要検討
+       */
+      if (e.propertyName === 'height' || e.propertyName === 'opacity') {
         this.InitPos()
       }
     })
 
-    // Vueでdestroyする必要があるのでメソッド分ける
     this.SetWindowEvent()
   }
 
+  // Vueでdestroyする必要があるので、Windowイベントの定義はメソッドにまとめて行う
   SetWindowEvent () {
-    window.addEventListener('resize', this.eventHolder)
+    window.addEventListener('resize', this.resizeEvents)
   }
 
+  // Vueでのdestroy用
   DestroyWindowEvent () {
-    window.removeEventListener('resize', this.eventHolder)
+    window.removeEventListener('resize', this.resizeEvents)
   }
 
   InitPos () {
@@ -79,38 +81,49 @@ class StackBox {
         this.cols = (window.innerWidth > this.liquid.maxWidth) ? this.colsOrg : this.liquid.cols
       }
       this.rows = Math.floor(this.itemsData.length / this.cols)
+      this.SetSingleGridData()
       for (let i in this.itemsData) {
-        this.itemsData[i] = this.SetData(this.itemsData[i].obj)
+        this.itemsData[i] = this.SetData(this.itemsData[i].obj, false)
       }
       this.matrix = []
       this.verticalGridCnt = 0
       this.matrix = this.GenerateMatrix()
       this.SetToMatrix(this.itemsData)
-
-      // data-gridに1,1が設定されている要素の高さを1Grid分と定義する
-      this.singleGrid = this.items.filter((item, index) => {
-        return item.dataset.grid.indexOf('1,1') >= 0
-      })
-      this.singleGridHeight = this.singleGrid[0].getBoundingClientRect().height
-      this.elm.style.height = this.singleGridHeight * (this.verticalGridCnt + 1) + 'px'
+      this.elm.style.height = this.singleGrid.obj.getBoundingClientRect().height * (this.verticalGridCnt + 1) + 'px'
 
       return resolve(this.elm)
     })
   }
 
-  SetData (item) {
-    const itemBCR = item.getBoundingClientRect()
+  /**
+   * data-gridに1,1が設定されている要素を1Grid分と定義する。
+   */
+  SetSingleGridData () {
+    const tmpSingleGridArr = this.items.filter((item, index) => {
+      return item.dataset.grid.indexOf('1,1') >= 0
+    })
+    this.singleGrid = this.SetData(tmpSingleGridArr[0], true)
+  }
+
+  SetData (item, isSingle) {
     const grid = item.dataset.grid.split(',')
-    if (Number(grid[0]) === 1) this.allHeight = itemBCR.height
-    return {
+    let tmpObj = {
       obj: item,
-      width: 100 / this.cols,
       row: Number(grid[0]),
       col: Number(grid[1])
     }
+    if (isSingle) {
+      tmpObj.perWidth = 100 / this.cols
+    }
+    return tmpObj
   }
 
   GenerateMatrix () {
+    /** TODO
+     * 10行の余裕をもってmatrixを生成しているが、
+     * 1アイテムが占めるGrid数が大きい場合(data-grid="5,5"など)は
+     * 足りなくなる可能性があるので計算式を要検討
+     */
     const marginRows = 10
     let tmpMatrix = []
     let i = 0
@@ -150,13 +163,13 @@ class StackBox {
           /**
            * height取得のため先にwidthを設定する
            */
-          items[cnt].obj.style.width = items[cnt].width * items[cnt].col + '%'
+          items[cnt].obj.style.width = this.singleGrid.perWidth * items[cnt].col + '%'
 
           /**
            * widthとitemWidthで設定した数値からratioを求め、
            * itemHeightにかけてheightを算出する
            */
-          const ratio = Math.round(this.singleGridItem.getBoundingClientRect().width / this.itemWidth * 100) / 100
+          const ratio = Math.round(this.singleGrid.obj.getBoundingClientRect().width / this.itemWidth * 100) / 100
           const itemH = Math.round(this.itemHeight * ratio)
 
           /**
@@ -178,7 +191,7 @@ class StackBox {
 
           items[cnt].obj.style.position = 'absolute'
           items[cnt].obj.style.top = Math.round(i * itemH) + 'px'
-          items[cnt].obj.style.left = j * items[cnt].width + '%'
+          items[cnt].obj.style.left = j * this.singleGrid.perWidth + '%'
 
           /**
            * 要素のGridの大きさに合わせてmatrixを埋める処理
