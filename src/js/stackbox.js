@@ -57,7 +57,7 @@ class StackBox {
       /** TODO
        * transitionのプロパティによっては発動しない可能性があるので要検討
        */
-      if (e.propertyName === 'height' || e.propertyName === 'opacity') {
+      if (e.propertyName === 'height' || e.propertyName === 'opacity' || e.propertyName === 'width') {
         this.InitPos()
       }
     })
@@ -105,12 +105,22 @@ class StackBox {
     this.singleGrid = this.SetData(tmpSingleGridArr[0], true)
   }
 
+  /**
+   * 各アイテムの情報を設定する
+   * @param {Object} item
+   * @param {Boolean} isSingle
+   */
   SetData (item, isSingle) {
     const grid = item.dataset.grid.split(',')
+    /**
+     * TODO
+     * SetDataの度にclassList内の検索が走るのは何とかしたい
+     */
     let tmpObj = {
       obj: item,
       row: Number(grid[0]),
-      col: Number(grid[1])
+      col: Number(grid[1]),
+      putty: (item.classList.contains('putty')) // カラム変更時に末尾に隙間が空かないように、puttyクラスの付いた要素を表示、非表示にするためのフラグ
     }
     if (isSingle) {
       tmpObj.perWidth = 100 / this.cols
@@ -148,6 +158,24 @@ class StackBox {
       let j = 0
       while (j < this.cols) {
         if (typeof items[cnt] === 'undefined') return
+        /**
+         * puttyがtrueのアイテムを、
+         * liquid.maxWidth以下の画角の時に非表示にする
+         */
+        /**
+         * TODO
+         * 表示非表示が一方通行で汎用性がないので、
+         * この辺のロジックは要検討
+         */
+        if (items[cnt].putty) {
+          if (window.innerWidth <= this.liquid.maxWidth) {
+            items[cnt].obj.style.display = 'none'
+            cnt++
+            continue
+          } else {
+            items[cnt].obj.style.display = 'block'
+          }
+        }
         if (this.matrix[i][j] === 0) {
           /**
            * 次のmatrixのカラムが無いとき（外枠をはみ出すとき）

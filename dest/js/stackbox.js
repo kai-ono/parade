@@ -89,7 +89,7 @@
         });
 
         this.itemsData[1].obj.addEventListener('transitionend', function (e) {
-          if (e.propertyName === 'height' || e.propertyName === 'opacity') {
+          if (e.propertyName === 'height' || e.propertyName === 'opacity' || e.propertyName === 'width') {
             _this2.InitPos();
           }
         });
@@ -141,11 +141,12 @@
       key: 'SetData',
       value: function SetData(item, isSingle) {
         var grid = item.dataset.grid.split(',');
+
         var tmpObj = {
           obj: item,
           row: Number(grid[0]),
-          col: Number(grid[1])
-        };
+          col: Number(grid[1]),
+          putty: item.classList.contains('putty') };
         if (isSingle) {
           tmpObj.perWidth = 100 / this.cols;
         }
@@ -179,6 +180,16 @@
           var j = 0;
           while (j < this.cols) {
             if (typeof items[cnt] === 'undefined') return;
+
+            if (items[cnt].putty) {
+              if (window.innerWidth <= this.liquid.maxWidth) {
+                items[cnt].obj.style.display = 'none';
+                cnt++;
+                continue;
+              } else {
+                items[cnt].obj.style.display = 'block';
+              }
+            }
             if (this.matrix[i][j] === 0) {
               var nextMatrix = this.matrix[i][j + items[cnt].col - 1];
               if (typeof nextMatrix === 'undefined' || nextMatrix === 1) {
